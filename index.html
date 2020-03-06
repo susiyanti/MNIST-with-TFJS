@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <title>Digit Recognition WebApp</title>
+    <title>Belajar Angka</title>
     <meta name="description" content="Simple Machine Learning Model into an WebApp using TensorFlow.js">
     <meta name="keywords" content="Machine Learning, TensorFlow.js">
     <meta name="author" content="Susiyanti">
@@ -10,10 +10,12 @@
         touch-action: none; /*https://developer.mozilla.org/en-US/docs/Web/CSS/touch-action*/
         font-family: "Roboto";
       }
-      h1 {
+      h1, h2 {
         margin: 25px;
-        font-size: 35px;
         text-align: center;
+      }
+      h1 {
+        font-size: 35px;
       }
       #paint {
         border:3px solid red;
@@ -48,17 +50,16 @@
   <body>
     <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.5.2/dist/tf.min.js"></script>
-    <h1>Digit Recognition WebApp</h1>
+    <h1>Belajar Angka</h1>
+    <h2>Tulis angka <span id="soal"></span></h2>
     <div id="paint">
       <canvas id="myCanvas"></canvas>
     </div>
     <div id="predicted">
-      Recognized digit
-      <div id="number"></div>
       <button id="clear">Clear</button>
     </div>
     <div id="proba">
-      Probability : <span id="probability"></span>
+      <span id="probability"></span>
     </div>
     <script>
     var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -85,6 +86,9 @@
     var compuetedStyle = getComputedStyle(document.getElementById('paint'));
     canvas.width = parseInt(compuetedStyle.getPropertyValue('width'));
     canvas.height = parseInt(compuetedStyle.getPropertyValue('height'));
+
+    var angka = Math.floor(Math.random() * 10);
+    $('#soal').html(angka);
 
     var mouse = {x: 0, y: 0};
 
@@ -125,7 +129,7 @@
       context.stroke();
     };
 
-    tf.loadLayersModel('model/model.json').then(function(model) {
+    tf.loadLayersModel('sigmoidMnist/model.json').then(function(model) {
       window.model = model;
     });
 
@@ -152,10 +156,17 @@
     var predict = function(input) {
       if (window.model) {
         window.model.predict([tf.tensor(input).reshape([1, 28, 28, 1])]).array().then(function(scores){
+          console.log(scores[0]);
           scores = scores[0];
           predicted = scores.indexOf(Math.max(...scores));
-          $('#number').html(predicted);
-          $('#probability').html(Math.max(...scores));
+          min = Math.min(...scores)
+          if (predicted === angka && (scores[angka]/min) > 10000){
+              //$('#number').html(predicted);
+              $('#probability').html("Benar "+(scores[angka]/min));
+          } else {
+              $('#probability').html("Salah "+(scores[angka]/min));
+
+          }
         });
       } else {
         // The model takes a bit to load, if we are too fast, wait
@@ -166,6 +177,8 @@
     $('#clear').click(function(){
       context.clearRect(0, 0, canvas.width, canvas.height);
       $('#number').html('');
+      angka = Math.floor(Math.random() * 10);
+      $('#soal').html(angka);
     });
     </script>
   </body>
